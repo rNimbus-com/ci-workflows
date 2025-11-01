@@ -93,16 +93,16 @@ jobs:
           ref: '${{ github.head_ref }}'
           fetch-depth: 0
       - name: Add Major ${{needs.get-next-version.outputs.major-version}} Tag
-        uses: jlroskens/savetag@main
+        uses: jlroskens/savetag@v0
         with: 
           tag: ${{needs.get-next-version.outputs.major-version}}
 
       - name: Add Minor ${{needs.get-next-version.outputs.minor-version}} Tag
-        uses: jlroskens/savetag@main
+        uses: jlroskens/savetag@v0
         with: 
           tag: ${{needs.get-next-version.outputs.minor-version}}
       - name: Add v${{needs.get-next-version.outputs.version}} Tag
-        uses: jlroskens/savetag@main
+        uses: jlroskens/savetag@v0
         with: 
           tag: v${{needs.get-next-version.outputs.version}}
       - name: Create Release ${{needs.get-next-version.outputs.version}}
