@@ -1,0 +1,21 @@
+name: Publish GitHub Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/local-release.yml'
+    
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+jobs:
+  create-release:
+    name: Creating New Release
+    uses: ./.github/workflows/release.yml
+    with:
+      release-branch: main
