@@ -93,12 +93,12 @@ jobs:
           ref: '${{ github.head_ref }}'
           fetch-depth: 0
       - name: Add Major ${{needs.get-next-version.outputs.major-version}} Tag
-        uses: jlroskens/savetag@feature/initial-version
+        uses: jlroskens/savetag@main
         with: 
           tag: ${{needs.get-next-version.outputs.major-version}}
 
       - name: Add Minor ${{needs.get-next-version.outputs.minor-version}} Tag
-        uses: jlroskens/savetag@feature/initial-version
+        uses: jlroskens/savetag@main
         with: 
           tag: ${{needs.get-next-version.outputs.minor-version}}
 
