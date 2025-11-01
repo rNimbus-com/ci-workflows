@@ -17,9 +17,9 @@ on:
       runs-on:
         required: false
         type: string
-        default: ubuntu-latest
+        default: ubuntu-slim
         description: >
-          Runs this workflow on the specified runner. Defaults to ubuntu-latest
+          Runs this workflow on the specified runner. Defaults to ubuntu-slim.
       disable-summary:
         required: false
         type: boolean
