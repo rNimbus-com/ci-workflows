@@ -96,11 +96,19 @@ jobs:
         run: |
           echo "github.event_name: ${{ github.event_name }}"
           echo "github.ref_name: ${{ github.ref_name }}"
+      - name: Create Release from Commit
+        if: ${{ success() && github.event_name == 'push' && github.ref_name == inputs.release-branch }}
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{needs.get-next-version.outputs.version}}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          gh release create "${RELEASE_VERSION}" --title="v${RELEASE_VERSION}" --notes "$COMMIT_MSG"
       - name: Add Major ${{needs.get-next-version.outputs.major-version}} Tag
         uses: jlroskens/savetag@v1
         with: 
           tag: ${{needs.get-next-version.outputs.major-version}}
-
       - name: Add Minor ${{needs.get-next-version.outputs.minor-version}} Tag
         uses: jlroskens/savetag@v1
         with: 
@@ -109,24 +117,3 @@ jobs:
         uses: jlroskens/savetag@v1
         with: 
           tag: v${{needs.get-next-version.outputs.version}}
-      - name: Create Release from PR Merge
-        if: ${{ success() && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true }}
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{needs.get-next-version.outputs.version}}
-        run: |
-          # Get the PR description and use it for the release
-          PR_NOTES=$(gh pr view ${{ github.event.pull_request.number }} --json body --jq '.body')
-          gh release create "${RELEASE_VERSION}" --title="v${RELEASE_VERSION}" --notes "$PR_NOTES"
-      
-      - name: Create Release from Direct Push
-        if: ${{ success() && github.event_name == 'push' && github.ref_name == inputs.release-branch }}
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{needs.get-next-version.outputs.version}}
-        run: |
-          # Get the commit message for direct push
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          gh release create "${RELEASE_VERSION}" --title="v${RELEASE_VERSION}" --notes "$COMMIT_MSG"
