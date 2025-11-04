@@ -5,8 +5,8 @@ on:
     branches:
       - main
       - feature/better-release-description
-    paths-ignore:
-      - '.github/workflows/local-release.yml'
+    # paths-ignore:
+    #   - '.github/workflows/local-release.yml'
     
   workflow_dispatch:
 
