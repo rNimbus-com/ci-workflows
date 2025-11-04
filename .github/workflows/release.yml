@@ -96,19 +96,19 @@ jobs:
         run: |
           echo "github.event_name: ${{ github.event_name }}"
           echo "github.ref_name: ${{ github.ref_name }}"
-      # - name: Add Major ${{needs.get-next-version.outputs.major-version}} Tag
-      #   uses: jlroskens/savetag@v1
-      #   with: 
-      #     tag: ${{needs.get-next-version.outputs.major-version}}
+      - name: Add Major ${{needs.get-next-version.outputs.major-version}} Tag
+        uses: jlroskens/savetag@v1
+        with: 
+          tag: ${{needs.get-next-version.outputs.major-version}}
 
-      # - name: Add Minor ${{needs.get-next-version.outputs.minor-version}} Tag
-      #   uses: jlroskens/savetag@v1
-      #   with: 
-      #     tag: ${{needs.get-next-version.outputs.minor-version}}
-      # - name: Add v${{needs.get-next-version.outputs.version}} Tag
-      #   uses: jlroskens/savetag@v1
-      #   with: 
-      #     tag: v${{needs.get-next-version.outputs.version}}
+      - name: Add Minor ${{needs.get-next-version.outputs.minor-version}} Tag
+        uses: jlroskens/savetag@v1
+        with: 
+          tag: ${{needs.get-next-version.outputs.minor-version}}
+      - name: Add v${{needs.get-next-version.outputs.version}} Tag
+        uses: jlroskens/savetag@v1
+        with: 
+          tag: v${{needs.get-next-version.outputs.version}}
       - name: Create Release from PR Merge
         if: ${{ success() && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true }}
         shell: bash

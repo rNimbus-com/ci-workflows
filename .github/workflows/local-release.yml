@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - main
-      - feature/better-release-description
-    # paths-ignore:
-    #   - '.github/workflows/local-release.yml'
+    paths-ignore:
+      - '.github/workflows/local-release.yml'
     
   workflow_dispatch:
 
@@ -19,4 +18,4 @@ jobs:
     name: Creating New Release
     uses: ./.github/workflows/release.yml
     with:
-      release-branch: feature/better-release-description
+      release-branch: main
