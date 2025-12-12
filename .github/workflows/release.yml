@@ -50,7 +50,7 @@ jobs:
       minor-version: '${{ steps.versions.outputs.minor-version }}'      
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: '${{ github.head_ref }}'
           fetch-depth: 0
@@ -88,7 +88,7 @@ jobs:
     if: ${{ success() && ( github.ref_name == inputs.release-branch )}}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: '${{ github.head_ref }}'
           fetch-depth: 0

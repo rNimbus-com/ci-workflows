@@ -1,0 +1,77 @@
+name: Generate terraform docs
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-slim
+        description: >
+          Runs this workflow on the specified runner. Defaults to `ubuntu-slim`.
+      tfdocs-disabled:
+        type: boolean
+        required: false
+        default: false
+        description: >
+          Disabled terraform docs. Useful for tofu manifests terraform docs can't handle.
+
+      tfdocs-args:
+        required: false
+        type: string
+        default: ''
+        description: >
+          Additional arguments to pass to the command (see [full documentation](https://github.com/terraform-docs/terraform-docs/tree/master/docs))
+      # tfdocs-atlantis-file:
+      #   required: false
+      #   type: string
+      #   default: 'disabled'
+      #   description: >
+      #     Name of Atlantis file to extract list of directories by parsing it. To enable, provide the file name (e.g. `atlantis.yaml`)
+      # tfdocs-find-dir:
+      #   required: false
+      #   type: string
+      #   default: 'disabled'
+      #   description: >
+      #     Name of root directory to extract list of directories by running `find ./find\_dir -name \*.tf`.
+      working-dir:
+        required: false
+        type: string
+        default: '.'
+        description: >
+          Comma separated list of directories to format and generate docs for (ignored if atlantis-file is set). Defaults to `.`.
+      tfdocs-output-file:
+        required: false
+        type: string
+        default: 'README.md'
+        description: >
+          File in module directory where the docs should be placed. Defaults to `README.md`.
+jobs:
+  docs:
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+    
+    - name: Tofu Format
+      shell: bash    
+      env:
+        WORKING_DIRS: ${{ inputs.working-dir }}
+      run: |
+        for d in ${WORKING_DIRS//,/ }
+        do
+          tofu fmt -recursive "$d"
+        done
+        git add -A
+
+    - name: Render terraform docs inside the README.md and push changes back to PR branch
+      uses: terraform-docs/gh-actions@v1
+      if: ${{ ! inputs.tfdocs-disabled }}
+      with:
+        args: ${{ inputs.tfdocs-args }}
+        # atlantis-file:  ${{ inputs.tfdocs-atlantis-file }}
+        # find-dir:  ${{ inputs.tfdocs-find-dir }}
+        working-dir: ${{ inputs.working-dir }}
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
