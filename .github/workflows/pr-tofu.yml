@@ -5,16 +5,15 @@ on:
       runs-on:
         required: false
         type: string
-        default: ubuntu-slim
+        default: ubuntu-latest
         description: >
-          Runs this workflow on the specified runner. Defaults to `ubuntu-slim`.
+          Runs this workflow on the specified runner. Defaults to `ubuntu-latest`.
       tfdocs-disabled:
         type: boolean
         required: false
         default: false
         description: >
           Disabled terraform docs. Useful for tofu manifests terraform docs can't handle.
-
       tfdocs-args:
         required: false
         type: string
