@@ -8,18 +8,24 @@ on:
         default: ubuntu-latest
         description: >
           Runs this workflow on the specified runner. Defaults to `ubuntu-latest`.
+      tofu-version:
+        type: string
+        required: false
+        default: latest
+        description: >
+          Version of opentofu used to format .terraform / .tofu files.
       tfdocs-disabled:
         type: boolean
         required: false
         default: false
         description: >
-          Disabled terraform docs. Useful for tofu manifests terraform docs can't handle.
+          Disables terraform docs generation. Useful for tofu manifests terraform docs can't handle.
       tfdocs-args:
         required: false
         type: string
         default: ''
         description: >
-          Additional arguments to pass to the command (see [full documentation](https://github.com/terraform-docs/terraform-docs/tree/master/docs))
+          Additional arguments to pass to the command (see [full documentation](https://github.com/terraform-docs/terraform-docs/tree/master/docs)).
       # tfdocs-atlantis-file:
       #   required: false
       #   type: string
@@ -53,7 +59,9 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
     
     - name: Install OpenTofu
-      uses: opentofu/setup-opentofu@v1
+      uses: opentofu/setup-opentofu@v2
+      with:
+        tofu_version: ${{ inputs.tofu-version }}
     
     - name: Tofu Format
       shell: bash    
