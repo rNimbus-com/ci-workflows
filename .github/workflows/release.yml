@@ -1,9 +1,10 @@
 # Reusable Workflow
 name: 𝌚 Create Release
 description: > 
-  Gets the next semantic version from the codacy/git-version marketplace action and outputs it along 
-  with the Major (v#) and Minor (v#.#) versions. If the release-branch is set to the current branch then
-  creates a GitHub Release and adds tags for the Major and Minor versions.
+  Gets the next semantic version from the go-semantic-release/semantic-release action using
+  conventional commits and outputs it along with the Major (v#) and Minor (v#.#) versions.
+  If the release-branch is set to the current branch then creates a GitHub Release with the
+  PR description as release notes and adds floating tags for the Major and Minor versions.
 on:
   workflow_call:
     inputs:
@@ -34,8 +35,11 @@ on:
             description: "Minor version - 'v#.#'"
             value: ${{ jobs.get-next-version.outputs.minor-version }}
         semantic-version:
-            description: "Semantic version - '#.#.#'"
+            description: "Semantic version - 'v#.#.#'"
             value: ${{ jobs.get-next-version.outputs.version }}
+        release-type:
+            description: "Release bump type - 'major', 'minor', or 'patch'"
+            value: ${{ jobs.get-next-version.outputs.release-type }}
 permissions:
   id-token: write
   contents: write
@@ -45,25 +49,26 @@ jobs:
     name: Get Versions
     runs-on: ${{ inputs.runs-on }}
     outputs:
-      version: '${{ steps.codacy-version.outputs.version }}'
+      version: '${{ steps.semantic-release.outputs.version }}'
       major-version: '${{ steps.versions.outputs.major-version }}'
-      minor-version: '${{ steps.versions.outputs.minor-version }}'      
+      minor-version: '${{ steps.versions.outputs.minor-version }}'
+      release-type: '${{ steps.semantic-release.outputs.type }}'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
           ref: '${{ github.head_ref }}'
           fetch-depth: 0
-      - name: Get Version
-        id: codacy-version
-        uses: codacy/git-version@2.8.6
+      - name: Get Next Version
+        id: semantic-release
+        uses: go-semantic-release/semantic-release@v1
         with:
-          release-branch: '${{inputs.release-branch}}'
+          no-release: true
       - name: Set Major & Minor Versions
         id: versions
         shell: bash
         env:
-          SEM_VERSION: ${{ steps.codacy-version.outputs.version }}
+          SEM_VERSION: ${{ steps.semantic-release.outputs.version }}
         run: |
           major_version=$(echo ${SEM_VERSION} | awk -F. '{printf "v%d\n", $1}')
           echo "major-version=${major_version}" >> $GITHUB_OUTPUT
@@ -73,13 +78,15 @@ jobs:
         if: ${{ !inputs.disable-summary }}
         shell: bash
         env:
-          SEM_VERSION: ${{ steps.codacy-version.outputs.version }}
+          SEM_VERSION: ${{ steps.semantic-release.outputs.version }}
           MAJOR_VERSION: '${{ steps.versions.outputs.major-version }}'
           MINOR_VERSION: '${{ steps.versions.outputs.minor-version }}'
+          RELEASE_TYPE: '${{ steps.semantic-release.outputs.type }}'
         run: |
           printf '## Versions\n\n' >> $GITHUB_STEP_SUMMARY
-          printf "| Semantic | Major | Minor |\n|----------|-------|-------|\n" >> $GITHUB_STEP_SUMMARY
-          printf "| $SEM_VERSION | $MAJOR_VERSION | $MINOR_VERSION |\n\n" >> $GITHUB_STEP_SUMMARY
+          printf "| Semantic | Major | Minor | Type |\n" >> $GITHUB_STEP_SUMMARY
+          printf "|----------|-------|-------|------|\n" >> $GITHUB_STEP_SUMMARY
+          printf "| $SEM_VERSION | $MAJOR_VERSION | $MINOR_VERSION | $RELEASE_TYPE |\n\n" >> $GITHUB_STEP_SUMMARY
   
   create-release:
     name: Tag and Release
@@ -100,7 +107,11 @@ jobs:
           RELEASE_VERSION: ${{needs.get-next-version.outputs.version}}
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          gh release create "${RELEASE_VERSION}" --title="v${RELEASE_VERSION}" --notes "$COMMIT_MSG"
+          # Extract PR body (everything after first blank line in commit message)
+          RELEASE_NOTES=$(echo "$COMMIT_MSG" | sed '1,/^$/d')
+          # Fallback to full message if no body (single-line commit)
+          if [ -z "$RELEASE_NOTES" ]; then RELEASE_NOTES="$COMMIT_MSG"; fi
+          gh release create "v${RELEASE_VERSION}" --title="v${RELEASE_VERSION}" --notes "$RELEASE_NOTES"
       - name: Add Major ${{needs.get-next-version.outputs.major-version}} Tag
         uses: rNimbus-com/savetag@v1
         with: 
@@ -109,7 +120,3 @@ jobs:
         uses: rNimbus-com/savetag@v1
         with: 
           tag: ${{needs.get-next-version.outputs.minor-version}}
-      - name: Add v${{needs.get-next-version.outputs.version}} Tag
-        uses: rNimbus-com/savetag@v1
-        with: 
-          tag: v${{needs.get-next-version.outputs.version}}
