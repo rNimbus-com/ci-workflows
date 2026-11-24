@@ -85,3 +85,8 @@ jobs:
         output-file: README.md
         output-method: inject
         git-push: "true"
+        # A commit this step pushes with GITHUB_TOKEN now triggers a follow-up
+        # pull_request run that GitHub holds for manual approval. The skip marker
+        # prevents that run. It is safe only where the squash commit on main is
+        # built from the PR title and description, not from commit messages.
+        git-commit-message: "terraform-docs: automated action [skip ci]"
